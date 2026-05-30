@@ -167,6 +167,34 @@ with tab1:
                 transcript,
                 db
             )
+            if results:
+
+                st.components.v1.html(
+                    """
+                    <script>
+                    setTimeout(() => {
+
+                        const target =
+                        window.parent.document
+                        .getElementById(
+                            "result"
+                        );
+
+                        if(target){
+
+                            target
+                            .scrollIntoView({
+                                behavior:
+                                "smooth"
+                            });
+
+                        }
+
+                    }, 300);
+                    </script>
+                    """,
+                    height=0
+                )
 
             if results:
 
@@ -176,207 +204,111 @@ with tab1:
 
                 for result in results:
 
-                    keyword = result.get(
-                        "keyword",
-                        "알 수 없음"
-                    )
-
-                    with st.container(
-                        border=True
-                    ):
+                        keyword = result.get(
+                            "keyword",
+                            "알 수 없음"
+                        )
 
                         st.markdown(
-                            f"## 🩺 {keyword}"
+                            "---"
                         )
 
-                        english = result.get(
-                            "english",
-                            ""
+                        st.markdown(
+                            f"# 🩺 {keyword}"
                         )
 
-                        if english:
-                            st.write(
-                                "🌍 영어명:",
-                                english
-                            )
+                        # 표시 순서 지정
+                        field_names = {
 
-                        col1, col2 = st.columns(2)
+                            "english":
+                            "🌍 영어명",
 
-                        with col1:
+                            "old_term":
+                            "📚 구용어",
 
-                            old_term = result.get(
-                                "old_term",
+                            "new_term":
+                            "🆕 신용어",
+
+                            "description":
+                            "📖 설명",
+
+                            "clinical_feature":
+                            "🧠 임상 특징",
+
+                            "related_disease":
+                            "🦠 관련 질환",
+
+                            "related_assessment":
+                            "📋 평가도구",
+
+                            "tool_used":
+                            "🛠 평가 툴",
+
+                            "evaluation_method":
+                            "🧪 평가 방법",
+
+                            "normal_rom":
+                            "📐 정상 ROM",
+
+                            "mmt_grade":
+                            "💪 MMT Grade",
+
+                            "normal_value":
+                            "📏 정상 수치",
+
+                            "related_special_test":
+                            "🧪 특수검사",
+
+                            "related_exercise":
+                            "🏋️ 관련 운동",
+
+                            "exercise_protocol":
+                            "📋 운동 프로토콜",
+
+                            "clinical_tip":
+                            "💡 임상 팁"
+                        }
+
+                        # CSV에 있는 모든 열 출력
+                        for key, label in (
+                            field_names.items()
+                        ):
+
+                            value = result.get(
+                                key,
                                 ""
                             )
 
-                            if old_term:
-                                st.write(
-                                    "📚 구용어:",
-                                    old_term
-                                )
-
-                        with col2:
-
-                            new_term = result.get(
-                                "new_term",
-                                ""
-                            )
-
-                            if new_term:
-                                st.write(
-                                    "🆕 신용어:",
-                                    new_term
-                                )
-
-                        description = result.get(
-                            "description",
-                            ""
-                        )
-
-                        if description:
-                            st.write(
-                                "📖 설명:",
-                                description
-                            )
-
-                        clinical = result.get(
-                            "clinical_feature",
-                            ""
-                        )
-
-                        if clinical:
-                            st.write(
-                                "🧠 임상 특징:",
-                                clinical
-                            )
-
-                        disease = result.get(
-                            "related_disease",
-                            ""
-                        )
-
-                        if disease:
-
-                            with st.expander(
-                                "🦠 관련 질환"
+                            # 빈칸 제외
+                            if (
+                                str(value)
+                                .strip()
+                                and str(value)
+                                != "nan"
                             ):
 
-                                st.write(
-                                    disease
-                                )
+                                # 여러 개 항목 구분
+                                if "|" in str(
+                                    value
+                                ):
 
-                        assessment = result.get(
-                            "related_assessment",
-                            ""
-                        )
-
-                        if assessment:
-                            st.write(
-                                "📋 평가도구:",
-                                assessment
-                            )
-
-                        tool = result.get(
-                            "tool_used",
-                            ""
-                        )
-
-                        if tool:
-                            st.write(
-                                "🛠 평가 툴:",
-                                tool
-                            )
-
-                        normal_rom = result.get(
-                            "normal_rom",
-                            ""
-                        )
-
-                        if normal_rom:
-
-                            with st.expander(
-                                "📐 정상 ROM"
-                            ):
-
-                                for rom in str(
-                                    normal_rom
-                                ).split("|"):
-
-                                    st.markdown(
-                                        f"- {rom}"
+                                    st.write(
+                                        label
                                     )
 
-                        mmt = result.get(
-                            "mmt_grade",
-                            ""
-                        )
+                                    for item in str(
+                                        value
+                                    ).split("|"):
 
-                        if mmt:
+                                        st.markdown(
+                                            f"- {item}"
+                                        )
 
-                            with st.expander(
-                                "💪 MMT Grade"
-                            ):
+                                else:
 
-                                for grade in str(
-                                    mmt
-                                ).split("|"):
-
-                                    st.markdown(
-                                        f"- {grade}"
+                                    st.write(
+                                        f"{label}: {value}"
                                     )
-
-                        special = result.get(
-                            "related_special_test",
-                            ""
-                        )
-
-                        if special:
-                            st.write(
-                                "🧪 관련 검사:",
-                                special
-                            )
-
-                        exercise = result.get(
-                            "related_exercise",
-                            ""
-                        )
-
-                        if exercise:
-                            st.write(
-                                "🏋️ 운동:",
-                                exercise
-                            )
-
-                        protocol = result.get(
-                            "exercise_protocol",
-                            ""
-                        )
-
-                        if protocol:
-
-                            with st.expander(
-                                "📋 운동 프로토콜"
-                            ):
-
-                                st.write(
-                                    protocol
-                                )
-
-                        tip = result.get(
-                            "clinical_tip",
-                            ""
-                        )
-
-                        if tip:
-                            st.info(
-                                f"💡 {tip}"
-                            )
-
-            else:
-
-                st.warning(
-                    "관련 의학 용어를 찾지 못했습니다."
-                )
 
 
 # =====================================
@@ -397,6 +329,13 @@ with tab2:
         results = find_keywords(query, db)
 
         if results:
+
+            st.markdown(
+            """
+            <div id="result"></div>
+            """,
+            unsafe_allow_html=True
+        )
 
             st.markdown("## 🔍 검색 결과")
 

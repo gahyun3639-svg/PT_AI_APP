@@ -173,14 +173,28 @@ def find_keywords(
 
                 score += 95
 
-            # 부분 포함
-            elif (
-                term in query
-                or
-                query in term
-            ):
+            # 정확 keyword 최우선
+            if query == keyword:
+
+                score += 1000
+
+            # 완전 일치
+            elif term == query:
+
+                score += 100
+
+            # 단어 일치
+            elif term in words:
 
                 score += 50
+
+            # 부분 일치
+            elif (
+                term in query
+                and len(term) >= 3
+            ):
+
+                score += 5
 
             # fuzzy
             else:
@@ -255,5 +269,36 @@ def find_keywords(
 
             unique.append(r)
             seen.add(key)
+            # -------------------
+            # keyword 정확 매칭 우선
+            # -------------------
+            final_results = []
+
+            for result in unique:
+
+                keyword = str(
+                    result.get(
+                        "keyword",
+                        ""
+                    )
+                ).lower()
+
+                if (
+                    keyword
+                    in query.lower()
+                ):
+
+                    final_results.insert(
+                        0,
+                        result
+                    )
+
+                else:
+
+                    final_results.append(
+                        result
+                    )
+
+            return final_results[:5]
 
     return unique[:5]
