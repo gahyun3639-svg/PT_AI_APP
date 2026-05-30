@@ -72,21 +72,16 @@ with tab1:
         # -------------------
         # Waveform
         # -------------------
-        # -------------------
-        # recording state
-        # -------------------
+
         if "recording" not in st.session_state:
             st.session_state.recording = False
 
-        # 시작 버튼 누르면
+        # 녹음 중
         if audio is None:
+
             st.session_state.recording = True
 
-        # 녹음 완료되면
-        if audio:
-            st.session_state.recording = False
-
-            st.markdown(
+            st.components.v1.html(
                 """
                 <style>
 
@@ -103,45 +98,30 @@ with tab1:
                 .wave-svg{
                     width:200%;
                     height:180px;
-
                     position:absolute;
                     top:0;
                     left:0;
-
-                    animation:
-                    moveWave
-                    5s linear infinite;
+                    animation: moveWave 2s linear infinite;
                 }
 
                 .wave-line{
-
                     fill:none;
-
                     stroke:#00F0FF;
-
-                    stroke-width:3;
+                    stroke-width:4;
 
                     filter:
-                    drop-shadow(
-                        0 0 8px
-                        #00F0FF
-                    )
-                    drop-shadow(
-                        0 0 20px
-                        #00F0FF
-                    );
+                    drop-shadow(0 0 8px #00F0FF)
+                    drop-shadow(0 0 20px #00F0FF);
                 }
 
                 @keyframes moveWave{
 
                     from{
-                        transform:
-                        translateX(0);
+                        transform:translateX(0);
                     }
 
                     to{
-                        transform:
-                        translateX(-50%);
+                        transform:translateX(-50%);
                     }
                 }
 
@@ -150,47 +130,49 @@ with tab1:
                 <div class="wave-box">
 
                 <svg
-                class="wave-svg"
-                viewBox="0 0 1200 180">
+                    class="wave-svg"
+                    viewBox="0 0 1200 180">
 
-                <path
-                class="wave-line"
+                    <path
+                        class="wave-line"
 
-                d="
-                M0 90
+                        d="
+                        M0 90
+                        Q30 20 60 90
+                        T120 90
+                        T180 90
+                        T240 90
+                        T300 90
+                        T360 90
+                        T420 90
+                        T480 90
+                        T540 90
+                        T600 90
+                        T660 90
+                        T720 90
+                        T780 90
+                        T840 90
+                        T900 90
+                        T960 90
+                        T1020 90
+                        T1080 90
+                        T1140 90
+                        T1200 90
+                        "
 
-                Q30 20 60 90
-                T120 90
-                T180 90
-                T240 90
-                T300 90
-                T360 90
-                T420 90
-                T480 90
-                T540 90
-                T600 90
-                T660 90
-                T720 90
-                T780 90
-                T840 90
-                T900 90
-                T960 90
-                T1020 90
-                T1080 90
-                T1140 90
-                T1200 90
-                "
+                    />
 
                 </svg>
+
                 </div>
                 """,
-                unsafe_allow_html=True
+                height=200
             )
 
-        # -------------------
         # 녹음 완료
-        # -------------------
         if audio:
+
+            st.session_state.recording = False
 
             st.success(
                 "✅ 녹음 완료"
@@ -203,16 +185,13 @@ with tab1:
             )
 
             st.write(
-                f"⏱ "
-                f"{duration:.1f}초"
+                f"⏱ {duration:.1f}초"
             )
 
-            # 재생
             st.audio(
                 audio["bytes"],
                 format="audio/wav"
             )
-
             # -------------------
             # temp wav 저장
             # -------------------
@@ -240,6 +219,10 @@ with tab1:
                     transcribe_audio(
                         temp_audio_path
                     )
+                )
+                st.write(
+                    "디버그:",
+                    repr(transcript)
                 )
 
             st.text_area(

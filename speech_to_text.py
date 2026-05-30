@@ -9,8 +9,9 @@ import numpy as np
 # ==========================
 # 모델
 # ==========================
-model = whisper.load_model(
-    "base"
+result = model.transcribe(
+    audio_path,
+    language="ko"
 )
 
 
@@ -141,6 +142,11 @@ def transcribe_audio(
 
     except Exception as e:
 
+        import traceback
+
+        error_detail = traceback.format_exc()
+
         return (
-            f"오류: {str(e)}"
+            f"오류: {str(e)}\n\n"
+            f"{error_detail}"
         )
