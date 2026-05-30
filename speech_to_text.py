@@ -11,9 +11,6 @@ from database import load_database
 # ==========================
 # 모델 로드
 # ==========================
-model = whisper.load_model(
-    "base"
-)
 db = load_database()
 
 # ==========================
@@ -320,33 +317,49 @@ def clean_audio(
 # ==========================
 # STT
 # ==========================
+import whisper
+import traceback
+import os
+
+
 def transcribe_audio(
     audio_path
 ):
 
     try:
 
-        cleaned_path = (
-            clean_audio(
-                audio_path
-            )
-        )
-        # 빈 파일 방지
-        audio_size = os.path.getsize(
-            cleaned_path
-        )
-
-        if audio_size < 1000:
+        # 파일 존재 확인
+        if not os.path.exists(
+            audio_path
+        ):
 
             return (
-                "음성이 너무 짧거나 "
-                "인식되지 않았습니다."
+                "오디오 파일 없음"
             )
+
+        # 너무 짧은 녹음 방지
+        if (
+            os.path.getsize(
+                audio_path
+            ) < 1000
+        ):
+
+            return (
+                "녹음이 너무 짧음"
+            )
+
+        # Whisper 모델
+        model = (
+            whisper.load_model(
+                "tiny"
+            )
+        )
 
         result = (
             model.transcribe(
-                cleaned_path,
-                language="ko"
+                audio_path,
+                language="ko",
+                fp16=False
             )
         )
 
@@ -355,22 +368,17 @@ def transcribe_audio(
             .strip()
         )
 
-        text = (
-        fix_medical_terms(
-            text,
-            db
-        )
-    )
+        if not text:
+
+            return (
+                "음성이 인식되지 않음"
+            )
 
         return text
 
-    except Exception as e:
-
-        import traceback
-
-        error_detail = traceback.format_exc()
+    except Exception:
 
         return (
-            f"오류: {str(e)}\n\n"
-            f"{error_detail}"
+            traceback
+            .format_exc()
         )

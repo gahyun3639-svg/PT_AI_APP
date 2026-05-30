@@ -32,67 +32,15 @@ def find_keywords(
         query
     ).lower().strip()
 
-    query_nospace = (
-        query.replace(
-            " ",
-            ""
-        )
+    words = (
+        query.split()
     )
 
     results = []
 
-    # -------------------
-    # 의미 키워드
-    # -------------------
-    semantic_keywords = {
-
-        "mmt": [
-
-            "근력",
-            "맨손",
-            "도수",
-            "힘검사",
-            "근력검사"
-        ],
-
-        "mas": [
-
-            "강직",
-            "경직",
-            "근긴장도",
-            "긴장도"
-        ],
-
-        "rom": [
-
-            "가동범위",
-            "관절범위",
-            "움직임범위"
-        ],
-
-        "acl": [
-
-            "앞십자인대",
-            "전방십자인대",
-            "무릎앞"
-        ],
-
-        "stroke": [
-
-            "중풍",
-            "편마비",
-            "뇌혈관"
-        ],
-
-        "frozen shoulder": [
-
-            "오십견",
-            "동결견",
-            "유착성"
-        ]
-    }
-
-    for _, row in db.iterrows():
+    for _, row in (
+        db.iterrows()
+    ):
 
         score = 0
 
@@ -101,85 +49,60 @@ def find_keywords(
                 "keyword",
                 ""
             )
-        ).lower()
+        ).lower().strip()
 
-        # -------------------
-        # 검색어 수집
-        # -------------------
-        search_terms = []
-
-        for col in [
-
-            "keyword",
-            "aliases",
-            "pronunciation",
-            "new_term",
-            "old_term",
-            "english"
-
-        ]:
-
-            value = str(
-                row.get(
-                    col,
-                    ""
-                )
+        aliases = str(
+            row.get(
+                "aliases",
+                ""
             )
+        ).lower().split(",")
 
-            if value:
+        pronunciation = str(
+            row.get(
+                "pronunciation",
+                ""
+            )
+        ).lower().split(",")
 
-                terms = [
-
-                    x.strip().lower()
-
-                    for x in value.split(",")
-
-                    if x.strip()
-                ]
-
-                search_terms.extend(
-                    terms
-                )
-
-        search_terms = list(
-            set(search_terms)
+        search_terms = (
+            [keyword]
+            + aliases
+            + pronunciation
         )
 
-        # -------------------
-        # exact
-        # -------------------
-        for term in search_terms:
+        # 정확 keyword 우선
+        if query == keyword:
 
-            term_nospace = (
-                term.replace(
-                    " ",
-                    ""
-                )
+            row_dict = (
+                row.to_dict()
             )
 
-            # 완전일치
-            if (
-                query == term
-            ):
+            row_dict[
+                "_score"
+            ] = 9999
 
-                score += 100
+            results.append(
+                row_dict
+            )
 
-            # 띄어쓰기 무시
-            elif (
-                query_nospace
-                ==
-                term_nospace
-            ):
+            continue
 
-                score += 95
+        # 검색 점수 계산
+        for term in (
+            search_terms
+        ):
 
-            # 정확 keyword 최우선
-            if query == keyword:
+            term = (
+                str(term)
+                .strip()
+            )
 
-                score += 1000
+            if not term:
+                continue
 
             # 완전 일치
-            elif term == query:
+            if term == query:
 
                 score += 100
 
@@ -191,46 +114,12 @@ def find_keywords(
             # 부분 일치
             elif (
                 term in query
-                and len(term) >= 3
+                and len(term) >= 2
             ):
 
-                score += 5
+                score += 10
 
-            # fuzzy
-            else:
-
-                sim = similarity(
-                    query_nospace,
-                    term_nospace
-                )
-
-                if sim >= 0.82:
-                    score += 40
-
-        # -------------------
-        # 의미 추론
-        # -------------------
-        for key, words in (
-            semantic_keywords
-            .items()
-        ):
-
-            if any(
-                word in query
-                for word in words
-            ):
-
-                if (
-                    key
-                    in keyword
-                ):
-
-                    score += 60
-
-        # -------------------
-        # 결과 추가
-        # -------------------
-        if score >= 35:
+        if score >= 20:
 
             row_dict = (
                 row.to_dict()
@@ -244,7 +133,6 @@ def find_keywords(
                 row_dict
             )
 
-    # 정렬
     results = sorted(
         results,
         key=lambda x:
@@ -252,53 +140,4 @@ def find_keywords(
         reverse=True
     )
 
-    # 중복 제거
-    unique = []
-    seen = set()
-
-    for r in results:
-
-        key = str(
-            r.get(
-                "keyword",
-                ""
-            )
-        )
-
-        if key not in seen:
-
-            unique.append(r)
-            seen.add(key)
-            # -------------------
-            # keyword 정확 매칭 우선
-            # -------------------
-            final_results = []
-
-            for result in unique:
-
-                keyword = str(
-                    result.get(
-                        "keyword",
-                        ""
-                    )
-                ).lower()
-
-                if (
-                    keyword
-                    in query.lower()
-                ):
-
-                    final_results.insert(
-                        0,
-                        result
-                    )
-
-                else:
-
-                    final_results.append(
-                        result
-                    )
-
-            return final_results[:5]
-
-    return unique[:5]
+    return results[:10]
