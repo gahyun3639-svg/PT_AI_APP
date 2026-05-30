@@ -15,14 +15,14 @@ from speech_to_text import (
 # PAGE
 # =====================================
 st.set_page_config(
-    page_title="PHYSIO",
+    page_title="Phocabulary",
     layout="wide"
 )
 
-st.title("PHYSIO")
+st.title("Phocabulary")
 
 st.caption(
-    "AI Physical Therapy Assistant"
+    "Where Physio meets Vocabulary"
 )
 
 db = load_database()
