@@ -522,14 +522,20 @@ with tab2:
                     border=True
                 ):
 
-                        keyword = result.get(
-                            "keyword",
-                                 ""
-                            )
+                        for result in results:
 
-        st.markdown(
-            f"## 🩺 {keyword}"
-        )
+                            keyword = result.get(
+                            "keyword",
+                            "알 수 없음"
+                        )
+
+                        with st.container(
+                            border=True
+                        ):
+
+                            st.markdown(
+                                f"## 🩺 {keyword}"
+                            )
 
         st.write(
             "🌍 영어명:",
