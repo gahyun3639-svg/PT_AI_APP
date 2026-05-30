@@ -77,13 +77,6 @@ with tab1:
             st.session_state.recording = False
 
 
-        # 녹음 시작 버튼 눌렀을 때
-        if st.button(
-            "🎙 녹음 시작"
-        ):
-            st.session_state.recording = True
-
-
         # 녹음 중에만 waveform 표시
         if st.session_state.recording:
 
@@ -194,9 +187,11 @@ with tab1:
                         ){
 
                             const amp =
-                            (Math.random()
-                            * volume)
-                            / 5;
+                        (
+                            Math.random()
+                            * volume
+                        )
+                        * 2.8;
 
                             d +=
                             `Q ${
@@ -286,10 +281,7 @@ with tab1:
                         temp_audio_path
                     )
                 )
-                st.write(
-                    "디버그:",
-                    repr(transcript)
-                )
+                
 
             st.text_area(
                 "📝 텍스트 변환 결과",
