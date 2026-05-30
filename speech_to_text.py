@@ -7,11 +7,10 @@ import numpy as np
 
 
 # ==========================
-# 모델
+# 모델 로드
 # ==========================
-result = model.transcribe(
-    audio_path,
-    language="ko"
+model = whisper.load_model(
+    "base"
 )
 
 
