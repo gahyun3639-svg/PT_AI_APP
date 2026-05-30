@@ -70,10 +70,45 @@ def clean_audio(
     audio_path
 ):
 
-    y, sr = librosa.load(
-        audio_path,
-        sr=None
-    )
+    try:
+
+        y, sr = librosa.load(
+            audio_path,
+            sr=16000,
+            mono=True
+        )
+
+        reduced_noise = (
+            nr.reduce_noise(
+                y=y,
+                sr=sr
+            )
+        )
+
+        trimmed_audio, _ = (
+            librosa.effects.trim(
+                reduced_noise,
+                top_db=20
+            )
+        )
+
+        temp_path = (
+            "clean_audio.wav"
+        )
+
+        sf.write(
+            temp_path,
+            trimmed_audio,
+            sr
+        )
+
+        return temp_path
+
+    except Exception:
+
+        # 노이즈 제거 실패 시
+        # 원본 사용
+        return audio_path
 
     # 잡음 제거
     reduced_noise = (

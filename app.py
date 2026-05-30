@@ -77,7 +77,14 @@ with tab1:
             st.session_state.recording = False
 
 
-        # 녹음 중에만 waveform 표시
+        # 녹음 상태 판단
+        if audio:
+            st.session_state.recording = False
+        else:
+            st.session_state.recording = True
+
+
+        # 녹음 중일 때만 waveform 표시
         if st.session_state.recording:
 
             st.components.v1.html(
@@ -187,11 +194,10 @@ with tab1:
                         ){
 
                             const amp =
-                        (
-                            Math.random()
-                            * volume
-                        )
-                        * 2.8;
+                            (
+                                Math.random()
+                                * volume
+                            ) * 2.8;
 
                             d +=
                             `Q ${
@@ -223,11 +229,6 @@ with tab1:
                 height=200
             )
 
-
-        # 녹음 완료 시 waveform 제거
-        if audio:
-            st.session_state.recording = False
-
         # -------------------
         # 녹음 완료
          # -------------------
@@ -258,7 +259,7 @@ with tab1:
             # -------------------
             with tempfile.NamedTemporaryFile(
                 delete=False,
-                suffix=".wav"
+                suffix=".webm"
             ) as tmp_file:
 
                 tmp_file.write(
