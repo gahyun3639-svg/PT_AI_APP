@@ -9,3 +9,4 @@ soundfile
 noisereduce
 audio-recorder-streamlit
 ffmpeg-python
+streamlit-mic-recorder
