@@ -346,85 +346,100 @@ with tab2:
                     "알 수 없음"
                 )
 
-                with st.container(
-                    border=True
+                st.markdown("---")
+
+                st.markdown(
+                    f"# 🩺 {keyword}"
+                )
+
+                field_names = {
+
+                    "english":
+                    "🌍 영어명",
+
+                    "old_term":
+                    "📚 구용어",
+
+                    "new_term":
+                    "🆕 신용어",
+
+                    "description":
+                    "📖 설명",
+
+                    "clinical_feature":
+                    "🧠 임상 특징",
+
+                    "related_disease":
+                    "🦠 관련 질환",
+
+                    "related_assessment":
+                    "📋 평가도구",
+
+                    "tool_used":
+                    "🛠 평가 툴",
+
+                    "evaluation_method":
+                    "🧪 평가 방법",
+
+                    "normal_rom":
+                    "📐 정상 ROM",
+
+                    "mmt_grade":
+                    "💪 MMT Grade",
+
+                    "normal_value":
+                    "📏 정상 수치",
+
+                    "related_special_test":
+                    "🧪 특수검사",
+
+                    "related_exercise":
+                    "🏋️ 운동",
+
+                    "exercise_protocol":
+                    "📋 운동 프로토콜",
+
+                    "clinical_tip":
+                    "💡 임상 팁"
+                }
+
+                for key, label in (
+                    field_names.items()
                 ):
 
-                    st.markdown(
-                        f"## 🩺 {keyword}"
+                    value = result.get(
+                        key,
+                        ""
                     )
 
-                    st.write(
-                        "🌍 영어명:",
-                        result.get(
-                            "english",
-                            "-"
-                        )
-                    )
-
-                    st.write(
-                        "📖 설명:",
-                        result.get(
-                            "description",
-                            "-"
-                        )
-                    )
-
-                    st.write(
-                        "🧠 임상 특징:",
-                        result.get(
-                            "clinical_feature",
-                            "-"
-                        )
-                    )
-
-                    if result.get(
-                        "related_disease"
+                    if (
+                        str(value)
+                        .strip()
+                        and str(value)
+                        != "nan"
                     ):
 
-                        with st.expander(
-                            "🧠 관련 질환"
+                        st.markdown(
+                            f"### {label}"
+                        )
+
+                        if "|" in str(
+                            value
                         ):
 
-                            st.write(
-                                result.get(
-                                    "related_disease"
+                            for item in str(
+                                value
+                            ).split("|"):
+
+                                st.markdown(
+                                    f"- {item}"
                                 )
-                            )
 
-                    if result.get(
-                        "related_assessment"
-                    ):
-
-                        with st.expander(
-                            "📋 평가도구"
-                        ):
+                        else:
 
                             st.write(
-                                result.get(
-                                    "related_assessment"
-                                )
+                                value
                             )
-
-                    if result.get(
-                        "related_exercise"
-                    ):
-
-                        with st.expander(
-                            "🏋️ 운동"
-                        ):
-
-                            st.write(
-                                result.get(
-                                    "related_exercise"
-                                )
-                            )
-
-        else:
-
-            st.warning(
-                "검색 결과 없음"
-            )
 
 # =====================================
 # 파일 탭
