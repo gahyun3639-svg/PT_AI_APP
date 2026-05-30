@@ -1,11 +1,11 @@
 streamlit
 pandas
 numpy
-streamlit-mic-recorder
 openai-whisper
 torch
-soundfile
+torchaudio
 librosa
+soundfile
 noisereduce
-scipy
+audio-recorder-streamlit
 ffmpeg-python

@@ -1,26 +1,23 @@
 import pandas as pd
-import streamlit as st
 
 
 def load_database():
 
     try:
 
-        df = pd.read_csv(
+        db = pd.read_csv(
             "physio_db.csv",
-            encoding="utf-8-sig"
+            encoding="utf-8",
+            on_bad_lines="skip"
         )
 
-        df.fillna(
-            "",
-            inplace=True
-        )
+        db = db.fillna("")
 
-        return df
+        return db
 
     except Exception as e:
 
-        st.error(
+        print(
             f"CSV 로딩 오류: {e}"
         )
 

@@ -69,179 +69,33 @@ with tab1:
             key="physio_mic"
         )
 
-        # -------------------
-        # Waveform
-        # -------------------
-
-        if "recording" not in st.session_state:
-            st.session_state.recording = False
-
-
-        # 녹음 상태 판단
-        if audio:
-            st.session_state.recording = False
-        else:
-            st.session_state.recording = True
-
-
-        # 녹음 중일 때만 waveform 표시
-        if st.session_state.recording:
-
-            st.components.v1.html(
-                """
-                <style>
-
-                .wave-box{
-                    width:100%;
-                    height:180px;
-                    background:#071018;
-                    border-radius:28px;
-                    overflow:hidden;
-                }
-
-                svg{
-                    width:100%;
-                    height:180px;
-                }
-
-                .wave-line{
-                    fill:none;
-                    stroke:#00F0FF;
-                    stroke-width:5;
-
-                    filter:
-                    drop-shadow(0 0 10px #00F0FF)
-                    drop-shadow(0 0 25px #00F0FF);
-                }
-
-                </style>
-
-                <div class="wave-box">
-
-                    <svg viewBox="0 0 1200 180">
-
-                        <path
-                            id="wave"
-                            class="wave-line"
-                        />
-
-                    </svg>
-
-                </div>
-
-                <script>
-
-                const path =
-                document.getElementById(
-                    "wave"
-                );
-
-                async function start(){
-
-                    const stream =
-                    await navigator
-                    .mediaDevices
-                    .getUserMedia({
-                        audio:true
-                    });
-
-                    const audioCtx =
-                    new (
-                        window.AudioContext ||
-                        window.webkitAudioContext
-                    )();
-
-                    const analyser =
-                    audioCtx.createAnalyser();
-
-                    const source =
-                    audioCtx
-                    .createMediaStreamSource(
-                        stream
-                    );
-
-                    source.connect(
-                        analyser
-                    );
-
-                    analyser.fftSize = 256;
-
-                    const data =
-                    new Uint8Array(
-                        analyser
-                        .frequencyBinCount
-                    );
-
-                    function animate(){
-
-                        analyser
-                        .getByteFrequencyData(
-                            data
-                        );
-
-                        const volume =
-                        data.reduce(
-                            (a,b)=>a+b
-                        ) / data.length;
-                
-                        let d = ""
-
-                        const amplitude =
-                        Math.max(
-                            8,
-                            volume * 2.5
-                        );
-
-                        const frequency =
-                        0.018;
-
-                        for(
-                            let x = 0;
-                            x <= 1200;
-                            x += 8
-                        ){
-
-                            const y =
-                            90 +
-                            Math.sin(
-                                x * frequency
-                            ) * amplitude;
-
-                            if(x === 0){
-
-                                d +=
-                                `M ${x} ${y}`;
-
-                            }else{
-
-                                d +=
-                                ` L ${x} ${y}`;
-                            }
-                        }
-            
-                        
-                        path.setAttribute(
-                            "d",
-                            d
-                        );
-
-                        requestAnimationFrame(
-                            animate
-                        );
-                    }
-                start();
-
-                </script>
-                """,
-                height=200
-            )
-
+        st.info(
+        "🎙 녹음 버튼을 눌러 음성을 입력하세요"
+    )
+        
         # -------------------
         # 녹음 완료
-         # -------------------
-    if audio:
+        # -------------------
+        if audio:
 
-            st.session_state.recording = False
+        # -------------------
+        # 이전 결과 초기화
+        # -------------------
+            st.session_state[
+                "matched_terms"
+            ] = []
+
+            st.session_state[
+                "transcript"
+            ] = ""
+
+            st.session_state[
+                "matched_terms"
+            ] = []
+
+            st.session_state[
+                "transcript"
+            ] = ""
 
             st.success(
                 "✅ 녹음 완료"
@@ -281,19 +135,28 @@ with tab1:
             # 텍스트 변환
             # -------------------
             with st.spinner(
-                "텍스트 변환 중..."
-            ):
+            "텍스트 변환 중..."
+        ):
 
-                text = (
+                audio_path = (
+                    temp_audio_path
+                )
+
+                transcript = (
                     transcribe_audio(
-                        temp_audio_path
+                        audio_path
                     )
                 )
+
+            st.session_state[
+                "transcript"
+            ] = transcript
                 
 
+            
             st.text_area(
                 "📝 텍스트 변환 결과",
-                value=text,
+                value=transcript,
                 height=150
             )
 
@@ -301,7 +164,7 @@ with tab1:
             # 의학용어 자동 검색
             # =========================
             results = find_keywords(
-                text,
+                transcript,
                 db
             )
 
@@ -313,152 +176,201 @@ with tab1:
 
                 for result in results:
 
+                    keyword = result.get(
+                        "keyword",
+                        "알 수 없음"
+                    )
+
                     with st.container(
                         border=True
                     ):
 
                         st.markdown(
-                            f"""
-                            ## 🩺
-                            {result.get('keyword','')}
-                            """
+                            f"## 🩺 {keyword}"
                         )
 
-                        st.write(
-                            "🌍 영어명:",
-                            result.get(
-                                "english",
-                                ""
-                            )
+                        english = result.get(
+                            "english",
+                            ""
                         )
 
-                        st.write(
-                            "📖 설명:",
-                            result.get(
-                                "description",
-                                ""
-                            )
-                        )
-
-                        st.write(
-                            "📋 평가도구:",
-                            result.get(
-                                "evaluation_tool",
-                                ""
-                            )
-                        )
-
-                        st.write(
-                            "🏋️ 운동:",
-                            result.get(
-                                "exercise_protocol",
-                                ""
-                            )
-                        )
-
-                        st.write(
-                            "⚡ 관련 검사:",
-                            result.get(
-                                "related_special_test",
-                                ""
-                            )
-                        )
-
-                        # -------------------
-                        # 관련 질환 펼치기
-                        # -------------------
-                        with st.expander(
-                            "🧠 관련 질환 보기"
-                        ):
-
+                        if english:
                             st.write(
-                                result.get(
-                                    "related_disease",
-                                    ""
+                                "🌍 영어명:",
+                                english
+                            )
+
+                        col1, col2 = st.columns(2)
+
+                        with col1:
+
+                            old_term = result.get(
+                                "old_term",
+                                ""
+                            )
+
+                            if old_term:
+                                st.write(
+                                    "📚 구용어:",
+                                    old_term
                                 )
+
+                        with col2:
+
+                            new_term = result.get(
+                                "new_term",
+                                ""
                             )
 
-                        # -------------------
-                        # ROM
-                        # -------------------
-                        rom_exists = any([
-                            result.get(
-                                "shoulder_rom"
-                            ),
-                            result.get(
-                                "elbow_rom"
-                            ),
-                            result.get(
-                                "wrist_rom"
-                            ),
-                            result.get(
-                                "hip_rom"
-                            ),
-                            result.get(
-                                "knee_rom"
-                            ),
-                            result.get(
-                                "ankle_rom"
-                            )
-                        ])
-
-                        if rom_exists:
-
-                            st.markdown(
-                                "### 📐 ROM"
-                            )
-
-                            cols = st.columns(6)
-
-                            rom_list = [
-
-                                (
-                                    "Shoulder",
-                                    "shoulder_rom"
-                                ),
-
-                                (
-                                    "Elbow",
-                                    "elbow_rom"
-                                ),
-
-                                (
-                                    "Wrist",
-                                    "wrist_rom"
-                                ),
-
-                                (
-                                    "Hip",
-                                    "hip_rom"
-                                ),
-
-                                (
-                                    "Knee",
-                                    "knee_rom"
-                                ),
-
-                                (
-                                    "Ankle",
-                                    "ankle_rom"
+                            if new_term:
+                                st.write(
+                                    "🆕 신용어:",
+                                    new_term
                                 )
-                            ]
 
-                            for i, (
-                                label,
-                                key
-                            ) in enumerate(
-                                rom_list
+                        description = result.get(
+                            "description",
+                            ""
+                        )
+
+                        if description:
+                            st.write(
+                                "📖 설명:",
+                                description
+                            )
+
+                        clinical = result.get(
+                            "clinical_feature",
+                            ""
+                        )
+
+                        if clinical:
+                            st.write(
+                                "🧠 임상 특징:",
+                                clinical
+                            )
+
+                        disease = result.get(
+                            "related_disease",
+                            ""
+                        )
+
+                        if disease:
+
+                            with st.expander(
+                                "🦠 관련 질환"
                             ):
 
-                                with cols[i]:
+                                st.write(
+                                    disease
+                                )
 
-                                    st.metric(
-                                        label,
-                                        result.get(
-                                            key,
-                                            "-"
-                                        )
+                        assessment = result.get(
+                            "related_assessment",
+                            ""
+                        )
+
+                        if assessment:
+                            st.write(
+                                "📋 평가도구:",
+                                assessment
+                            )
+
+                        tool = result.get(
+                            "tool_used",
+                            ""
+                        )
+
+                        if tool:
+                            st.write(
+                                "🛠 평가 툴:",
+                                tool
+                            )
+
+                        normal_rom = result.get(
+                            "normal_rom",
+                            ""
+                        )
+
+                        if normal_rom:
+
+                            with st.expander(
+                                "📐 정상 ROM"
+                            ):
+
+                                for rom in str(
+                                    normal_rom
+                                ).split("|"):
+
+                                    st.markdown(
+                                        f"- {rom}"
                                     )
+
+                        mmt = result.get(
+                            "mmt_grade",
+                            ""
+                        )
+
+                        if mmt:
+
+                            with st.expander(
+                                "💪 MMT Grade"
+                            ):
+
+                                for grade in str(
+                                    mmt
+                                ).split("|"):
+
+                                    st.markdown(
+                                        f"- {grade}"
+                                    )
+
+                        special = result.get(
+                            "related_special_test",
+                            ""
+                        )
+
+                        if special:
+                            st.write(
+                                "🧪 관련 검사:",
+                                special
+                            )
+
+                        exercise = result.get(
+                            "related_exercise",
+                            ""
+                        )
+
+                        if exercise:
+                            st.write(
+                                "🏋️ 운동:",
+                                exercise
+                            )
+
+                        protocol = result.get(
+                            "exercise_protocol",
+                            ""
+                        )
+
+                        if protocol:
+
+                            with st.expander(
+                                "📋 운동 프로토콜"
+                            ):
+
+                                st.write(
+                                    protocol
+                                )
+
+                        tip = result.get(
+                            "clinical_tip",
+                            ""
+                        )
+
+                        if tip:
+                            st.info(
+                                f"💡 {tip}"
+                            )
 
             else:
 
@@ -466,78 +378,6 @@ with tab1:
                     "관련 의학 용어를 찾지 못했습니다."
                 )
 
-            # -------------------
-            # 자동 검색
-            # -------------------
-            results = (
-                find_keywords(
-                    text,
-                    db
-                )
-            )
-
-            if results:
-
-                st.markdown(
-                    "## 🩺 관련 의학 정보"
-                )
-
-                for result in results:
-
-                    with st.container(
-                        border=True
-                    ):
-
-                        st.markdown(
-                            f"""
-                            ## 🩺
-                            {result.get('keyword','')}
-                            """
-                        )
-
-                        st.write(
-                            "📖 설명:",
-                            result.get(
-                                "description",
-                                ""
-                            )
-                        )
-
-                        st.write(
-                            "🌍 영어명:",
-                            result.get(
-                                "english",
-                                ""
-                            )
-                        )
-
-                        st.write(
-                            "📋 평가:",
-                            result.get(
-                                "evaluation_tool",
-                                ""
-                            )
-                        )
-
-                        st.write(
-                            "🏋️ 운동:",
-                            result.get(
-                                "exercise_protocol",
-                                ""
-                            )
-                        )
-
-                        # 관련 질환 펼치기
-                        with st.expander(
-                            "🧠 관련 질환 보기"
-                        ):
-
-                            st.write(
-                                result.get(
-                                    "related_disease",
-                                    ""
-                                )
-                            )
 
 # =====================================
 # 검색 탭
