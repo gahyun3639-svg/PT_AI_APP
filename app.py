@@ -494,14 +494,12 @@ with tab1:
 # =====================================
 with tab2:
 
-    st.subheader(
-        "용어 검색"
-    )
+    st.subheader("용어 검색")
 
     query = st.text_input(
         "검색어 입력",
-        placeholder=
-        "예: ACL, 오십견, 극상근"
+        placeholder="예: ACL, 오십견, 극상근",
+        key="search_input"
     )
 
     if query:
@@ -518,213 +516,98 @@ with tab2:
             )
 
             for result in results:
+
+                keyword = result.get(
+                    "keyword",
+                    "알 수 없음"
+                )
+
                 with st.container(
                     border=True
                 ):
 
-                        for result in results:
-
-                            keyword = result.get(
-                            "keyword",
-                            "알 수 없음"
-                        )
-
-                        with st.container(
-                            border=True
-                        ):
-
-                            st.markdown(
-                                f"## 🩺 {keyword}"
-                            )
-
-        st.write(
-            "🌍 영어명:",
-            result.get(
-                "english",
-                ""
-            )
-        )
-
-        st.write(
-            "📖 설명:",
-            result.get(
-                "description",
-                ""
-            )
-        )
-
-        st.write(
-            "🧠 임상 특징:",
-            result.get(
-                "clinical_feature",
-                ""
-            )
-        )
-
-        # ------------------
-        # 관련 질환
-        # ------------------
-        related_disease = (
-            result.get(
-                "related_disease",
-                ""
-            )
-        )
-
-        if related_disease:
-
-            with st.expander(
-                "🧠 관련 질환"
-            ):
-
-                diseases = [
-                    x.strip()
-                    for x in
-                    str(
-                        related_disease
-                    ).split(",")
-                ]
-
-                for d in diseases:
-
                     st.markdown(
-                        f"- {d}"
+                        f"## 🩺 {keyword}"
                     )
 
-        # ------------------
-        # 평가도구
-        # ------------------
-        related_assessment = (
-            result.get(
-                "related_assessment",
-                ""
+                    st.write(
+                        "🌍 영어명:",
+                        result.get(
+                            "english",
+                            "-"
+                        )
+                    )
+
+                    st.write(
+                        "📖 설명:",
+                        result.get(
+                            "description",
+                            "-"
+                        )
+                    )
+
+                    st.write(
+                        "🧠 임상 특징:",
+                        result.get(
+                            "clinical_feature",
+                            "-"
+                        )
+                    )
+
+                    # 관련 질환
+                    related = result.get(
+                        "related_disease",
+                        ""
+                    )
+
+                    if related:
+
+                        with st.expander(
+                            "🧠 관련 질환"
+                        ):
+
+                            st.write(
+                                related
+                            )
+
+                    # 평가도구
+                    assessment = result.get(
+                        "related_assessment",
+                        ""
+                    )
+
+                    if assessment:
+
+                        with st.expander(
+                            "📋 평가도구"
+                        ):
+
+                            st.write(
+                                assessment
+                            )
+
+                    # 운동
+                    exercise = result.get(
+                        "related_exercise",
+                        ""
+                    )
+
+                    if exercise:
+
+                        with st.expander(
+                            "🏋️ 운동"
+                        ):
+
+                            st.write(
+                                exercise
+                            )
+
+        else:
+
+            st.warning(
+                "검색 결과 없음"
             )
-        )
-
-        evaluation_tool = (
-            result.get(
-                "evaluation_tool",
-                ""
-            )
-        )
-
-        with st.expander(
-            "📋 평가도구"
-        ):
-
-            if (
-                related_assessment
-            ):
-
-                st.write(
-                    related_assessment
-                )
-
-            if (
-                evaluation_tool
-            ):
-
-                st.write(
-                    evaluation_tool
-                )
-
-        # ------------------
-        # 운동
-        # ------------------
-        exercise = (
-            result.get(
-                "related_exercise",
-                ""
-            )
-        )
-
-        protocol = (
-            result.get(
-                "exercise_protocol",
-                ""
-            )
-        )
-
-        with st.expander(
-            "🏋️ 운동"
-        ):
-
-            if exercise:
-
-                st.write(
-                    exercise
-                )
-
-            if protocol:
-
-                st.write(
-                    protocol
-                )
-
-        # ------------------
-        # 같이 보면 좋은 용어
-        # ------------------
-        st.markdown(
-            "### 🔗 같이 보면 좋은 용어"
-        )
-
-        related_terms = []
-
-        for col in [
-
-            "related_disease",
-
-            "related_assessment",
-
-            "related_special_test",
-
-            "related_exercise"
-
-        ]:
-
-            val = result.get(
-                col,
-                ""
-            )
-
-            if val:
-
-                terms = [
-                    x.strip()
-                    for x in
-                    str(val)
-                    .split(",")
-                ]
-
-                related_terms.extend(
-                    terms
-                )
-
-        related_terms = list(
-            set(
-                related_terms
-            )
-        )
-
-        cols = st.columns(4)
-
-        for i, term in enumerate(
-            related_terms[:8]
-        ):
-
-            with cols[
-                i % 4
-            ]:
-
-                if st.button(
-                    term,
-                    key=
-                    f"{keyword}_{term}"
-                ):
-
-                    st.session_state[
-                        "search_query"
-                    ] = term
+            
 # =====================================
 # 검색 탭
 # =====================================
