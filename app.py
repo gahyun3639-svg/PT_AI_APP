@@ -76,10 +76,16 @@ with tab1:
         if "recording" not in st.session_state:
             st.session_state.recording = False
 
-        # 녹음 중
-        if audio is None:
 
+        # 녹음 시작 버튼 눌렀을 때
+        if st.button(
+            "🎙 녹음 시작"
+        ):
             st.session_state.recording = True
+
+
+        # 녹음 중에만 waveform 표시
+        if st.session_state.recording:
 
             st.components.v1.html(
                 """
@@ -89,88 +95,148 @@ with tab1:
                     width:100%;
                     height:180px;
                     background:#071018;
-                    border-radius:22px;
+                    border-radius:28px;
                     overflow:hidden;
-                    position:relative;
-                    margin-top:15px;
                 }
 
-                .wave-svg{
-                    width:200%;
+                svg{
+                    width:100%;
                     height:180px;
-                    position:absolute;
-                    top:0;
-                    left:0;
-                    animation: moveWave 2s linear infinite;
                 }
 
                 .wave-line{
                     fill:none;
                     stroke:#00F0FF;
-                    stroke-width:4;
+                    stroke-width:5;
 
                     filter:
-                    drop-shadow(0 0 8px #00F0FF)
-                    drop-shadow(0 0 20px #00F0FF);
-                }
-
-                @keyframes moveWave{
-
-                    from{
-                        transform:translateX(0);
-                    }
-
-                    to{
-                        transform:translateX(-50%);
-                    }
+                    drop-shadow(0 0 10px #00F0FF)
+                    drop-shadow(0 0 25px #00F0FF);
                 }
 
                 </style>
 
                 <div class="wave-box">
 
-                <svg
-                    class="wave-svg"
-                    viewBox="0 0 1200 180">
+                    <svg viewBox="0 0 1200 180">
 
-                    <path
-                        class="wave-line"
+                        <path
+                            id="wave"
+                            class="wave-line"
+                        />
 
-                        d="
-                        M0 90
-                        Q30 20 60 90
-                        T120 90
-                        T180 90
-                        T240 90
-                        T300 90
-                        T360 90
-                        T420 90
-                        T480 90
-                        T540 90
-                        T600 90
-                        T660 90
-                        T720 90
-                        T780 90
-                        T840 90
-                        T900 90
-                        T960 90
-                        T1020 90
-                        T1080 90
-                        T1140 90
-                        T1200 90
-                        "
-
-                    />
-
-                </svg>
+                    </svg>
 
                 </div>
+
+                <script>
+
+                const path =
+                document.getElementById(
+                    "wave"
+                );
+
+                async function start(){
+
+                    const stream =
+                    await navigator
+                    .mediaDevices
+                    .getUserMedia({
+                        audio:true
+                    });
+
+                    const audioCtx =
+                    new (
+                        window.AudioContext ||
+                        window.webkitAudioContext
+                    )();
+
+                    const analyser =
+                    audioCtx.createAnalyser();
+
+                    const source =
+                    audioCtx
+                    .createMediaStreamSource(
+                        stream
+                    );
+
+                    source.connect(
+                        analyser
+                    );
+
+                    analyser.fftSize = 256;
+
+                    const data =
+                    new Uint8Array(
+                        analyser
+                        .frequencyBinCount
+                    );
+
+                    function animate(){
+
+                        analyser
+                        .getByteFrequencyData(
+                            data
+                        );
+
+                        const volume =
+                        data.reduce(
+                            (a,b)=>a+b
+                        ) / data.length;
+
+                        let d =
+                        "M0 90 ";
+
+                        for(
+                            let i=0;
+                            i<1200;
+                            i+=40
+                        ){
+
+                            const amp =
+                            (Math.random()
+                            * volume)
+                            / 5;
+
+                            d +=
+                            `Q ${
+                                i+20
+                            } ${
+                                90-amp
+                            } ${
+                                i+40
+                            } 90 `;
+                        }
+
+                        path.setAttribute(
+                            "d",
+                            d
+                        );
+
+                        requestAnimationFrame(
+                            animate
+                        );
+                    }
+
+                    animate();
+                }
+
+                start();
+
+                </script>
                 """,
                 height=200
             )
 
-        # 녹음 완료
+
+        # 녹음 완료 시 waveform 제거
         if audio:
+            st.session_state.recording = False
+
+        # -------------------
+        # 녹음 완료
+         # -------------------
+    if audio:
 
             st.session_state.recording = False
 
@@ -230,6 +296,7 @@ with tab1:
                 value=text,
                 height=150
             )
+
             # =========================
             # 의학용어 자동 검색
             # =========================
