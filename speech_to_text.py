@@ -1,4 +1,6 @@
+import os
 import whisper
+import traceback
 import re
 import librosa
 import soundfile as sf
