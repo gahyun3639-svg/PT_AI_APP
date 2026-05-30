@@ -183,32 +183,43 @@ with tab1:
                         data.reduce(
                             (a,b)=>a+b
                         ) / data.length;
+                
+                        let d = ""
 
-                        let d =
-                        "M0 90 ";
+                        const amplitude =
+                        Math.max(
+                            8,
+                            volume * 2.5
+                        );
+
+                        const frequency =
+                        0.018;
 
                         for(
-                            let i=0;
-                            i<1200;
-                            i+=40
+                            let x = 0;
+                            x <= 1200;
+                            x += 8
                         ){
 
-                            const amp =
-                            (
-                                Math.random()
-                                * volume
-                            ) * 2.8;
+                            const y =
+                            90 +
+                            Math.sin(
+                                x * frequency
+                            ) * amplitude;
 
-                            d +=
-                            `Q ${
-                                i+20
-                            } ${
-                                90-amp
-                            } ${
-                                i+40
-                            } 90 `;
+                            if(x === 0){
+
+                                d +=
+                                `M ${x} ${y}`;
+
+                            }else{
+
+                                d +=
+                                ` L ${x} ${y}`;
+                            }
                         }
-
+            
+                        
                         path.setAttribute(
                             "d",
                             d
@@ -218,10 +229,6 @@ with tab1:
                             animate
                         );
                     }
-
-                    animate();
-                }
-
                 start();
 
                 </script>
