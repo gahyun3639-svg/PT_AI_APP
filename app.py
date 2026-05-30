@@ -489,46 +489,37 @@ with tab1:
                                 )
                             )
 
-
 # =====================================
 # 검색 탭
 # =====================================
 with tab2:
 
-    st.subheader(
-        "용어 검색"
-    )
+    st.subheader("용어 검색")
 
     query = st.text_input(
         "검색어 입력",
-        placeholder=
-        "예: ACL, 오십견, 극상근",
-        key="search_input"
+        placeholder="예: ACL, 오십견, 극상근",
+        key="search_input_unique"
     )
 
     if query:
 
-        results = find_keywords(
-            query,
-            db
-        )
+        results = find_keywords(query, db)
 
         if results:
 
-            st.markdown(
-                "## 🔍 검색 결과"
-            )
+            st.markdown("## 🔍 검색 결과")
 
             for result in results:
+
+                keyword = result.get(
+                    "keyword",
+                    "알 수 없음"
+                )
 
                 with st.container(
                     border=True
                 ):
-
-                    keyword = result.get(
-                        "keyword",
-                        ""
-                    )
 
                     st.markdown(
                         f"## 🩺 {keyword}"
@@ -538,7 +529,7 @@ with tab2:
                         "🌍 영어명:",
                         result.get(
                             "english",
-                            ""
+                            "-"
                         )
                     )
 
@@ -546,7 +537,7 @@ with tab2:
                         "📖 설명:",
                         result.get(
                             "description",
-                            ""
+                            "-"
                         )
                     )
 
@@ -554,195 +545,51 @@ with tab2:
                         "🧠 임상 특징:",
                         result.get(
                             "clinical_feature",
-                            ""
+                            "-"
                         )
                     )
 
-                    # ----------------
-                    # 관련 질환
-                    # ----------------
-                    related_disease = (
-                        result.get(
-                            "related_disease",
-                            ""
-                        )
-                    )
-
-                    if related_disease:
+                    if result.get(
+                        "related_disease"
+                    ):
 
                         with st.expander(
                             "🧠 관련 질환"
                         ):
 
-                            disease_list = [
-                                x.strip()
-                                for x in str(
-                                    related_disease
-                                ).split(",")
-                                if x.strip()
-                            ]
-
-                            for disease in (
-                                disease_list
-                            ):
-
-                                st.markdown(
-                                    f"- {disease}"
+                            st.write(
+                                result.get(
+                                    "related_disease"
                                 )
+                            )
 
-                    # ----------------
-                    # 평가도구
-                    # ----------------
-                    with st.expander(
-                        "📋 평가도구"
+                    if result.get(
+                        "related_assessment"
                     ):
-
-                        assessment = (
-                            result.get(
-                                "related_assessment",
-                                ""
-                            )
-                        )
-
-                        evaluation = (
-                            result.get(
-                                "evaluation_tool",
-                                ""
-                            )
-                        )
-
-                        if assessment:
-
-                            st.write(
-                                assessment
-                            )
-
-                        if evaluation:
-
-                            st.write(
-                                evaluation
-                            )
-
-                    # ----------------
-                    # 운동
-                    # ----------------
-                    with st.expander(
-                        "🏋️ 운동"
-                    ):
-
-                        exercise = (
-                            result.get(
-                                "related_exercise",
-                                ""
-                            )
-                        )
-
-                        protocol = (
-                            result.get(
-                                "exercise_protocol",
-                                ""
-                            )
-                        )
-
-                        if exercise:
-
-                            st.write(
-                                exercise
-                            )
-
-                        if protocol:
-
-                            st.write(
-                                protocol
-                            )
-
-                    # ----------------
-                    # 관련 검사
-                    # ----------------
-                    special_test = (
-                        result.get(
-                            "related_special_test",
-                            ""
-                        )
-                    )
-
-                    if special_test:
 
                         with st.expander(
-                            "🧪 관련 검사"
+                            "📋 평가도구"
                         ):
 
                             st.write(
-                                special_test
+                                result.get(
+                                    "related_assessment"
+                                )
                             )
 
-                    # ----------------
-                    # 같이 보면 좋은 용어
-                    # ----------------
-                    st.markdown(
-                        "### 🔗 같이 보면 좋은 용어"
-                    )
-
-                    related_terms = []
-
-                    for col in [
-
-                        "related_disease",
-                        "related_assessment",
-                        "related_special_test",
+                    if result.get(
                         "related_exercise"
+                    ):
 
-                    ]:
-
-                        value = (
-                            result.get(
-                                col,
-                                ""
-                            )
-                        )
-
-                        if value:
-
-                            terms = [
-
-                                x.strip()
-
-                                for x in str(
-                                    value
-                                ).split(",")
-
-                                if x.strip()
-                            ]
-
-                            related_terms.extend(
-                                terms
-                            )
-
-                    related_terms = list(
-                        set(
-                            related_terms
-                        )
-                    )
-
-                    if related_terms:
-
-                        cols = st.columns(
-                            4
-                        )
-
-                        for i, term in enumerate(
-                            related_terms[:8]
+                        with st.expander(
+                            "🏋️ 운동"
                         ):
 
-                            with cols[
-                                i % 4
-                            ]:
-
-                                st.button(
-                                    term,
-                                    key=
-                                    f"{keyword}_{term}"
+                            st.write(
+                                result.get(
+                                    "related_exercise"
                                 )
+                            )
 
         else:
 
