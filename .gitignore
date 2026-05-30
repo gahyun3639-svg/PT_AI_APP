@@ -1,0 +1,5 @@
+.streamlit/
+__pycache__/
+*.pyc
+clean_audio.wav
+cloudflared.exe
