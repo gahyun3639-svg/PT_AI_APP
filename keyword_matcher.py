@@ -25,9 +25,7 @@ def find_keywords(
         query
     ).lower().strip()
 
-    words = (
-        query.split()
-    )
+    words = query.split()
 
     results = []
 
@@ -99,7 +97,7 @@ def find_keywords(
         ).lower()
 
         # -------------------
-        # 핵심 검색어 묶기
+        # 검색어 묶기
         # -------------------
         search_terms = (
             [keyword]
@@ -107,9 +105,6 @@ def find_keywords(
             + pronunciation
         )
 
-        # -------------------
-        # 연관 텍스트
-        # -------------------
         related_text = " ".join([
             description,
             clinical_feature,
@@ -120,12 +115,11 @@ def find_keywords(
         ])
 
         # -------------------
-        # 정확 keyword 검색
+        # 정확 검색
         # -------------------
         if query == keyword:
 
             row_dict = row.to_dict()
-
             row_dict["_score"] = 9999
 
             results.append(
@@ -135,10 +129,8 @@ def find_keywords(
             continue
 
         # -------------------
-        # 핵심 단어 점수
+        # 핵심 검색
         # -------------------
-        matched_terms = 0
-
         for term in search_terms:
 
             term = (
@@ -147,28 +139,28 @@ def find_keywords(
                 .lower()
             )
 
-            if (
-                not term
-                or len(term) < 2
-            ):
+            if not term:
                 continue
 
-            # 정확 포함
-            if term in query:
+            # 정확 일치
+            if term == query:
 
                 score += 100
-                matched_terms += 1
 
-            # 띄어쓰기 대응
+            # 문장 안 포함
+            elif term in query:
+
+                score += 60
+
+            # 띄어쓰기 포함 대응
             elif any(
-                term in w
-                for w in words
+                term in word
+                for word in words
             ):
 
-                score += 70
-                matched_terms += 1
+                score += 40
 
-            # 오타 허용
+            # 오타 대응
             else:
 
                 sim = similarity(
@@ -176,57 +168,40 @@ def find_keywords(
                     query
                 )
 
-                if sim >= 0.85:
+                if sim >= 0.8:
 
-                    score += 40
-                    matched_terms += 1
+                    score += 20
 
         # -------------------
-        # 설명 기반 관련도
+        # 문장 기반 검색
         # -------------------
         for word in words:
 
             if len(word) < 2:
                 continue
 
-            # 검사명 / 질환명은 강하게
-            if (
-                word in related_special_test
-                or word in related_assessment
-                or word in related_disease
-            ):
-
-                score += 30
-
-            # 설명은 약하게
-            elif (
-                word in description
-                or word in clinical_feature
-            ):
-
-                score += 10
-
-        # -------------------
-        # 관련 카드 강화
-        # -------------------
-        if matched_terms >= 1:
-
-            if keyword in related_text:
-
+            if word in related_special_test:
                 score += 25
 
-        # -------------------
-        # 최소 점수 제한
-        # -------------------
-        if score >= 60:
+            elif word in related_assessment:
+                score += 20
 
-            row_dict = (
-                row.to_dict()
-            )
+            elif word in related_disease:
+                score += 20
 
-            row_dict[
-                "_score"
-            ] = score
+            elif word in description:
+                score += 8
+
+            elif word in clinical_feature:
+                score += 8
+
+        # -------------------
+        # 결과 추가
+        # -------------------
+        if score >= 20:
+
+            row_dict = row.to_dict()
+            row_dict["_score"] = score
 
             results.append(
                 row_dict
@@ -262,4 +237,4 @@ def find_keywords(
         reverse=True
     )
 
-    return results[:7]
+    return results[:10]
