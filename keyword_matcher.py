@@ -16,7 +16,10 @@ def similarity(a, b):
 # -------------------
 # 핵심 검색 엔진
 # -------------------
-def find_keywords(query, db):
+def find_keywords(
+    query,
+    db
+):
 
     query = str(
         query
@@ -28,9 +31,7 @@ def find_keywords(query, db):
 
     results = []
 
-    for _, row in (
-        db.iterrows()
-    ):
+    for _, row in db.iterrows():
 
         score = 0
 
@@ -97,12 +98,18 @@ def find_keywords(query, db):
             )
         ).lower()
 
+        # -------------------
+        # 핵심 검색어 묶기
+        # -------------------
         search_terms = (
             [keyword]
             + aliases
             + pronunciation
         )
 
+        # -------------------
+        # 연관 텍스트
+        # -------------------
         related_text = " ".join([
             description,
             clinical_feature,
@@ -112,16 +119,14 @@ def find_keywords(query, db):
             related_exercise
         ])
 
-        # 정확 keyword 우선
+        # -------------------
+        # 정확 keyword 검색
+        # -------------------
         if query == keyword:
 
-            row_dict = (
-                row.to_dict()
-            )
+            row_dict = row.to_dict()
 
-            row_dict[
-                "_score"
-            ] = 9999
+            row_dict["_score"] = 9999
 
             results.append(
                 row_dict
@@ -130,8 +135,10 @@ def find_keywords(query, db):
             continue
 
         # -------------------
-        # 검색 점수 계산
+        # 핵심 단어 점수
         # -------------------
+        matched_terms = 0
+
         for term in search_terms:
 
             term = (
@@ -140,33 +147,28 @@ def find_keywords(query, db):
                 .lower()
             )
 
-            if not term:
+            if (
+                not term
+                or len(term) < 2
+            ):
                 continue
 
-            # 완전 일치
-            if term == query:
+            # 정확 포함
+            if term in query:
 
                 score += 100
+                matched_terms += 1
 
-            # 문장 안 포함
-            elif term in query:
-
-                score += 60
-
-            # 단어 일부 포함
+            # 띄어쓰기 대응
             elif any(
                 term in w
                 for w in words
             ):
 
-                score += 40
+                score += 70
+                matched_terms += 1
 
-            # 설명/질환/검사 관련성
-            elif term in related_text:
-
-                score += 15
-
-            # 오타 대응
+            # 오타 허용
             else:
 
                 sim = similarity(
@@ -174,24 +176,49 @@ def find_keywords(query, db):
                     query
                 )
 
-                if sim >= 0.75:
+                if sim >= 0.85:
 
-                    score += 20
+                    score += 40
+                    matched_terms += 1
 
         # -------------------
-        # 설명 기반 문장 검색
+        # 설명 기반 관련도
         # -------------------
         for word in words:
 
             if len(word) < 2:
                 continue
 
-            if word in related_text:
+            # 검사명 / 질환명은 강하게
+            if (
+                word in related_special_test
+                or word in related_assessment
+                or word in related_disease
+            ):
+
+                score += 30
+
+            # 설명은 약하게
+            elif (
+                word in description
+                or word in clinical_feature
+            ):
 
                 score += 10
 
-        # 결과 추가
-        if score >= 20:
+        # -------------------
+        # 관련 카드 강화
+        # -------------------
+        if matched_terms >= 1:
+
+            if keyword in related_text:
+
+                score += 25
+
+        # -------------------
+        # 최소 점수 제한
+        # -------------------
+        if score >= 60:
 
             row_dict = (
                 row.to_dict()
@@ -205,7 +232,9 @@ def find_keywords(query, db):
                 row_dict
             )
 
+    # -------------------
     # 중복 제거
+    # -------------------
     unique_results = {}
 
     for item in results:
@@ -233,4 +262,4 @@ def find_keywords(query, db):
         reverse=True
     )
 
-    return results[:10]
+    return results[:7]
